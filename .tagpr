@@ -14,6 +14,7 @@ changelogFile = "go_sdk/CHANGELOG.md"
 
 # version.goファイルでバージョン管理（オプション）
 versionFile = "go_sdk/version.go"
+	releaseBranch = main
 
 # コミットメッセージのフォーマット
 [tagpr.release]
