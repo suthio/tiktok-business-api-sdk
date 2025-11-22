@@ -1,6 +1,6 @@
 module github.com/suthio/tiktok-business-api-sdk/go_sdk
 
-go 1.25
+go 1.21
 
 require github.com/stretchr/testify v1.9.0
 
