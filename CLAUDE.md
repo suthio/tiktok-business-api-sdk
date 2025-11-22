@@ -18,11 +18,13 @@ go_sdk/
 ├── ad/                   # Ad operations
 ├── adgroup/              # Ad Group operations
 ├── audience/             # Audience & DMP operations
-├── authentication/       # OAuth authentication
+├── authentication/       # OAuth authentication & Token refresh
 ├── bc/                   # Business Center operations
 ├── campaign/             # Campaign operations
+├── creative/             # Creative management
 ├── measurement/          # Pixel & Offline event tracking
 ├── reporting/            # Reporting & Smart Plus analytics
+├── research/             # Research Adlib API
 └── tool/                 # Utility APIs (carriers, languages, etc.)
 ```
 
@@ -319,13 +321,14 @@ materialReport, err := reportingAPI.GetMaterialReportBreakdown(ctx, &reporting.M
 
 **Methods:**
 - `GetAccessToken(ctx, req)` - Get OAuth access token
+- `RefreshToken(ctx, req)` - Refresh access token using refresh token
 - `GetAdvertisers(ctx, appID, secret, accessToken)` - Get authorized advertiser accounts
 
-**Reference:** OAuth documentation
+**Reference:** https://ads.tiktok.com/marketing_api/docs?id=1739965703387137
 
 **Example:**
 ```go
-authAPI := authentication.NewAPI(client)
+authAPI := authentication.NewAPI()
 
 // Get access token
 tokenResp, err := authAPI.GetAccessToken(ctx, &authentication.AccessTokenRequest{
@@ -334,8 +337,87 @@ tokenResp, err := authAPI.GetAccessToken(ctx, &authentication.AccessTokenRequest
     AuthCode: "auth_code_from_oauth",
 })
 
+// Refresh access token (after 24 hours)
+refreshResp, err := authAPI.RefreshToken(ctx, &authentication.RefreshTokenRequest{
+    AppID: "your_app_id",
+    Secret: "your_secret",
+    RefreshToken: tokenResp.RefreshToken,
+})
+
 // Get advertiser list
 advertisers, err := authAPI.GetAdvertisers(ctx, "app_id", "secret", "access_token")
+```
+
+**Notes:**
+- Access token is valid for 24 hours
+- Refresh token is valid for 1 year
+- You should refresh the access token daily within the 1-year period
+- After 1 year, user needs to reauthorize
+
+---
+
+### 11. Creative API (`creative/`)
+
+**Location:** `go_sdk/creative/creative.go`
+
+**Methods:**
+- `GetCreatives(ctx, req)` - Get creative information with pagination
+- `GetAllCreatives(ctx, req)` - Get all creatives with automatic pagination
+
+**Reference:** https://business-api.tiktok.com/portal/docs?id=1740051721711618
+
+**Example:**
+```go
+creativeAPI := creative.NewAPI(client)
+
+// Get creatives with pagination
+resp, err := creativeAPI.GetCreatives(ctx, &creative.GetCreativesRequest{
+    AdvertiserID: "123456789",
+    Page: ptr(1),
+    PageSize: ptr(10),
+})
+
+// Get all creatives (auto-pagination)
+allCreatives, err := creativeAPI.GetAllCreatives(ctx, &creative.GetCreativesRequest{
+    AdvertiserID: "123456789",
+    Filtering: &creative.Filtering{
+        CreativeType: ptr("VIDEO"),
+    },
+})
+```
+
+---
+
+### 12. Research Adlib API (`research/`)
+
+**Location:** `go_sdk/research/research.go`
+
+**Methods:**
+- `GetAdReport(ctx, req)` - Get ad report from TikTok Research Adlib API
+- `GetAllAdReports(ctx, req)` - Get all ad reports with automatic pagination
+
+**Reference:** https://business-api.tiktok.com/portal/docs?id=1758579480845313
+
+**Example:**
+```go
+researchAPI := research.NewAPI(client)
+
+// Search for ads
+resp, err := researchAPI.GetAdReport(ctx, &research.GetAdReportRequest{
+    SearchTerm: "shoes",
+    CountryCode: ptr("US"),
+    Page: ptr(1),
+    PageSize: ptr(10),
+})
+
+// Get all ads with filtering
+allAds, err := researchAPI.GetAllAdReports(ctx, &research.GetAdReportRequest{
+    SearchTerm: "technology",
+    CountryCode: ptr("US"),
+    Filtering: &research.AdReportFiltering{
+        Platforms: []string{"TikTok"},
+    },
+})
 ```
 
 ---
@@ -475,13 +557,15 @@ go 1.21
 - Campaign API - Get campaigns with Smart Plus support
 - Ad API - Get ads data
 - AdGroup API - Get ad groups
+- Creative API - Get creatives with filtering and auto-pagination
 - Measurement API - List pixels, get offline event sets
 - Audience API - Get and list custom audiences
 - Tool API - Get carriers, languages, action categories
 - Account API - Get advertiser info and balance
 - BC API - Get transactions and assets
 - Reporting API - Integrated reports and Smart Plus analytics
-- Authentication API - OAuth flow
+- Research Adlib API - Search and get ad reports from TikTok's ad library
+- Authentication API - OAuth flow with access token refresh
 
 ### 📝 Future Enhancements
 

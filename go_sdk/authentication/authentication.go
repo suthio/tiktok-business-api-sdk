@@ -138,6 +138,83 @@ type GetAdvertisersResponse struct {
 	List []AdvertiserInfo `json:"list"`
 }
 
+// RefreshTokenRequest represents the request to refresh access token
+type RefreshTokenRequest struct {
+	AppID        string `json:"app_id"`
+	Secret       string `json:"secret"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+// RefreshToken refreshes the access token using a refresh token.
+// The refresh token is valid for one year. Use this method to get a new access token
+// when the current one expires (after 24 hours).
+// Reference: https://ads.tiktok.com/marketing_api/docs?id=1739965703387137
+func (a *API) RefreshToken(ctx context.Context, req *RefreshTokenRequest) (*AccessTokenResponse, error) {
+	// Build URL
+	fullURL := a.baseURL + "/open_api/v1.3/oauth2/access_token/"
+
+	// Create request body with grant_type
+	requestBody := map[string]string{
+		"app_id":        req.AppID,
+		"secret":        req.Secret,
+		"grant_type":    "refresh_token",
+		"refresh_token": req.RefreshToken,
+	}
+
+	// Marshal request body
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
+
+	// Create HTTP request
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, fullURL, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	// Execute request
+	resp, err := a.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	// Read response body
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	// Parse response
+	var apiResp tiktok.Response
+	if err := json.Unmarshal(respBody, &apiResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	// Check for API errors
+	if apiResp.Code != nil && *apiResp.Code != 0 {
+		errResp := &tiktok.ErrorResponse{
+			Code:    *apiResp.Code,
+			Message: *apiResp.Message,
+		}
+		if apiResp.RequestID != nil {
+			errResp.RequestID = *apiResp.RequestID
+		}
+		return nil, errResp
+	}
+
+	// Unmarshal data
+	var tokenResp AccessTokenResponse
+	if err := json.Unmarshal(apiResp.Data, &tokenResp); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal access token response: %w", err)
+	}
+
+	return &tokenResp, nil
+}
+
 // GetAdvertisers gets a list of advertisers that have granted you permission to manage their accounts.
 // Reference: https://business-api.tiktok.com/portal/docs?id=1738455508553729
 func (a *API) GetAdvertisers(ctx context.Context, appID, secret, accessToken string) (*GetAdvertisersResponse, error) {
