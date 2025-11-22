@@ -1,0 +1,25 @@
+[tagpr]
+# v1.0.0形式でタグを作成
+vPrefix = true
+
+# サブディレクトリのモジュール用にプレフィックスを追加
+# タグは go_sdk/v1.0.0 の形式になる
+tagPrefix = "go_sdk/"
+
+# CHANGELOG.mdを自動生成
+changelog = true
+
+# CHANGELOGファイルの場所（サブディレクトリに配置）
+changelogFile = "go_sdk/CHANGELOG.md"
+
+# version.goファイルでバージョン管理（オプション）
+versionFile = "go_sdk/version.go"
+
+# コミットメッセージのフォーマット
+[tagpr.release]
+# リリース時のコミットメッセージ
+msg = "Release go_sdk/{{ .Version }}"
+
+[tagpr.labels]
+# tagprが作成するPRに付けるラベル
+tagpr = "tagpr"
