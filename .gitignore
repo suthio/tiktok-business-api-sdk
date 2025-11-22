@@ -1,2 +1,5 @@
-# # Default ignored idea files
+# Default ignored idea files
 .idea/
+
+# Environment variables (contains sensitive credentials)
+.env*
