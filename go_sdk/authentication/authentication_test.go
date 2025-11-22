@@ -157,6 +157,99 @@ func TestGetAdvertisers(t *testing.T) {
 	assert.Equal(t, "Test Advertiser 2", resp.List[1].AdvertiserName)
 }
 
+func TestRefreshToken(t *testing.T) {
+	// Create test server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify request method
+		assert.Equal(t, http.MethodPost, r.Method)
+
+		// Verify request path
+		assert.Equal(t, "/open_api/v1.3/oauth2/access_token/", r.URL.Path)
+
+		// Verify content type
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+
+		// Verify request body
+		var reqBody map[string]string
+		err := json.NewDecoder(r.Body).Decode(&reqBody)
+		require.NoError(t, err)
+		assert.Equal(t, "test_app_id", reqBody["app_id"])
+		assert.Equal(t, "test_secret", reqBody["secret"])
+		assert.Equal(t, "refresh_token", reqBody["grant_type"])
+		assert.Equal(t, "test_refresh_token", reqBody["refresh_token"])
+
+		// Send response
+		response := map[string]interface{}{
+			"code":       0,
+			"message":    "OK",
+			"request_id": "test_request_id",
+			"data": map[string]interface{}{
+				"access_token":             "new_access_token",
+				"refresh_token":            "new_refresh_token",
+				"expires_in":               86400,
+				"refresh_token_expires_in": 31536000,
+				"advertiser_ids":           []string{"123456", "789012"},
+				"token_type":               "Bearer",
+				"scope":                    "user.info.basic",
+			},
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	// Create API client
+	api := NewAPIWithConfig(server.URL, nil)
+
+	// Test RefreshToken
+	req := &RefreshTokenRequest{
+		AppID:        "test_app_id",
+		Secret:       "test_secret",
+		RefreshToken: "test_refresh_token",
+	}
+
+	resp, err := api.RefreshToken(context.Background(), req)
+	require.NoError(t, err)
+
+	assert.Equal(t, "new_access_token", resp.AccessToken)
+	assert.Equal(t, "new_refresh_token", resp.RefreshToken)
+	assert.Equal(t, int64(86400), resp.ExpiresIn)
+	assert.Equal(t, int64(31536000), resp.RefreshTokenExpiresIn)
+	assert.Equal(t, []string{"123456", "789012"}, resp.AdvertiserIDs)
+	assert.Equal(t, "Bearer", resp.TokenType)
+	assert.Equal(t, "user.info.basic", resp.Scope)
+}
+
+func TestRefreshToken_Error(t *testing.T) {
+	// Create test server that returns an error
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]interface{}{
+			"code":       40001,
+			"message":    "Invalid refresh_token",
+			"request_id": "test_request_id",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+	}))
+	defer server.Close()
+
+	// Create API client
+	api := NewAPIWithConfig(server.URL, nil)
+
+	// Test RefreshToken with error
+	req := &RefreshTokenRequest{
+		AppID:        "test_app_id",
+		Secret:       "test_secret",
+		RefreshToken: "invalid_refresh_token",
+	}
+
+	_, err := api.RefreshToken(context.Background(), req)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid refresh_token")
+}
+
 func TestGetAdvertisers_Error(t *testing.T) {
 	// Create test server that returns an error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
