@@ -22,29 +22,29 @@ func NewAPI(client *tiktok.Client) *API {
 
 // CreativeInfo represents creative information
 type CreativeInfo struct {
-	CreativeID       string   `json:"creative_id"`
-	CreativeName     string   `json:"creative_name,omitempty"`
-	AdID             string   `json:"ad_id,omitempty"`
-	AdgroupID        string   `json:"adgroup_id,omitempty"`
-	CampaignID       string   `json:"campaign_id,omitempty"`
-	AdvertiserID     string   `json:"advertiser_id"`
-	CreativeType     string   `json:"creative_type,omitempty"`
-	ImageIDs         []string `json:"image_ids,omitempty"`
-	VideoID          string   `json:"video_id,omitempty"`
-	AdText           string   `json:"ad_text,omitempty"`
-	AdFormat         string   `json:"ad_format,omitempty"`
-	CallToAction     string   `json:"call_to_action,omitempty"`
-	LandingPageURL   string   `json:"landing_page_url,omitempty"`
-	DisplayName      string   `json:"display_name,omitempty"`
-	IdentityID       string   `json:"identity_id,omitempty"`
-	IdentityType     string   `json:"identity_type,omitempty"`
-	CardID           string   `json:"card_id,omitempty"`
-	OperationStatus  string   `json:"operation_status,omitempty"`
-	CreateTime       string   `json:"create_time,omitempty"`
-	ModifyTime       string   `json:"modify_time,omitempty"`
-	VideoViewTrackingURL string `json:"video_view_tracking_url,omitempty"`
-	ClickTrackingURL string   `json:"click_tracking_url,omitempty"`
-	ImpressionTrackingURL string `json:"impression_tracking_url,omitempty"`
+	CreativeID            string   `json:"creative_id"`
+	CreativeName          string   `json:"creative_name,omitempty"`
+	AdID                  string   `json:"ad_id,omitempty"`
+	AdgroupID             string   `json:"adgroup_id,omitempty"`
+	CampaignID            string   `json:"campaign_id,omitempty"`
+	AdvertiserID          string   `json:"advertiser_id"`
+	CreativeType          string   `json:"creative_type,omitempty"`
+	ImageIDs              []string `json:"image_ids,omitempty"`
+	VideoID               string   `json:"video_id,omitempty"`
+	AdText                string   `json:"ad_text,omitempty"`
+	AdFormat              string   `json:"ad_format,omitempty"`
+	CallToAction          string   `json:"call_to_action,omitempty"`
+	LandingPageURL        string   `json:"landing_page_url,omitempty"`
+	DisplayName           string   `json:"display_name,omitempty"`
+	IdentityID            string   `json:"identity_id,omitempty"`
+	IdentityType          string   `json:"identity_type,omitempty"`
+	CardID                string   `json:"card_id,omitempty"`
+	OperationStatus       string   `json:"operation_status,omitempty"`
+	CreateTime            string   `json:"create_time,omitempty"`
+	ModifyTime            string   `json:"modify_time,omitempty"`
+	VideoViewTrackingURL  string   `json:"video_view_tracking_url,omitempty"`
+	ClickTrackingURL      string   `json:"click_tracking_url,omitempty"`
+	ImpressionTrackingURL string   `json:"impression_tracking_url,omitempty"`
 }
 
 // GetCreativesResponse represents the response for getting creatives
