@@ -3,8 +3,6 @@ version: 2
 run:
   timeout: 5m
   tests: false
-  skip-dirs:
-    - examples
 
 linters:
   enable:
@@ -40,6 +38,8 @@ linters-settings:
       - ruleguard
 
 issues:
+  exclude-dirs:
+    - examples
   exclude-rules:
     - path: _test\.go$
       linters:
